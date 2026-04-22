@@ -70,8 +70,8 @@ class CapstoneMapperApp:
                 "panel": "#1A1A1A",
                 "accent": "#FF9500",
                 "text": "#FFFFFF",
-                "input_bg": "#FFFFFF",
-                "input_fg": "#000000",
+                "input_bg": "#000000",
+                "input_fg": "#FFFFFF",
                 "subtitle_fg": "#DDDDDD",
                 "button_bg": "#333333",
                 "button_active": "#4D4D4D",
@@ -82,7 +82,7 @@ class CapstoneMapperApp:
             "light": {  # Light theme color palette
                 "bg": "#FFFFFF",
                 "panel": "#F0F0F0",
-                "accent": "#007ACC",
+                "accent": "#FF9500",
                 "text": "#000000",
                 "input_bg": "#FFFFFF",
                 "input_fg": "#000000",
@@ -90,8 +90,8 @@ class CapstoneMapperApp:
                 "button_bg": "#CCCCCC",
                 "button_active": "#AAAAAA",
                 "output_bg": "#F9F9F9",
-                # Light blue highlight for active buttons in light mode
-                "active_bg": "#4DA6FF"
+                # Light orange highlight for active buttons in light mode
+                "active_bg": "#FF9500"
             }
         }
         
@@ -103,7 +103,8 @@ class CapstoneMapperApp:
         
         # Configure main window
         master.title("Capstone Placement App")
-        master.geometry("980x760")
+        # Set the window to fullscreen mode
+        master.state('zoomed')
         master.configure(bg=self.themes[self.current_theme]["bg"])
 
         header = tk.Label(
@@ -126,20 +127,79 @@ class CapstoneMapperApp:
         subtitle.pack(padx=16, pady=(0, 16))
         self.ui_elements["subtitle"] = subtitle
 
+        # Create a canvas with scrollbars for the main content
+        canvas_frame = tk.Frame(master, bg=self.themes[self.current_theme]["bg"])
+        canvas_frame.pack(fill="both", expand=True, padx=16, pady=6)
+        self.ui_elements["canvas_frame"] = canvas_frame
+
+        # Create vertical scrollbar
+        v_scrollbar = tk.Scrollbar(canvas_frame, orient="vertical")
+        v_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.ui_elements["v_scrollbar"] = v_scrollbar
+
+        # Create horizontal scrollbar
+        h_scrollbar = tk.Scrollbar(canvas_frame, orient="horizontal")
+        h_scrollbar.grid(row=1, column=0, sticky="ew")
+        self.ui_elements["h_scrollbar"] = h_scrollbar
+
+        # Create canvas with both scroll commands
+        self.canvas = tk.Canvas(
+            canvas_frame,
+            bg=self.themes[self.current_theme]["bg"],
+            highlightthickness=0,
+            yscrollcommand=v_scrollbar.set,
+            xscrollcommand=h_scrollbar.set
+        )
+        self.canvas.grid(row=0, column=0, sticky="nsew")
+        self.ui_elements["canvas"] = self.canvas
+        
+        # Configure grid weights for proper expansion
+        canvas_frame.grid_rowconfigure(0, weight=1)
+        canvas_frame.grid_columnconfigure(0, weight=1)
+        
+        # Configure scrollbars
+        v_scrollbar.config(command=self.canvas.yview)
+        h_scrollbar.config(command=self.canvas.xview)
+
+        # Create the main frame inside the canvas
         frame = tk.Frame(master, bg=self.themes[self.current_theme]["bg"])
-        frame.pack(fill="both", expand=True, padx=16, pady=6)
+        self.canvas_window_id = self.canvas.create_window((0, 0), window=frame, anchor="nw")
         self.ui_elements["main_frame"] = frame
 
+        # Use grid layout for left and right frames with equal weights
         left = tk.Frame(frame, bg=self.themes[self.current_theme]["panel"], bd=0, relief="flat")
-        left.pack(side="left", fill="both", expand=True, padx=(0, 8), pady=2)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 8), pady=2)
         self.ui_elements["left_frame"] = left
 
         right = tk.Frame(frame, bg=self.themes[self.current_theme]["panel"], bd=0, relief="flat")
-        right.pack(side="right", fill="both", expand=True, pady=2)
+        right.grid(row=0, column=1, sticky="nsew", pady=2)
         self.ui_elements["right_frame"] = right
+
+        # Configure frame grid weights for equal column distribution
+        frame.grid_rowconfigure(0, weight=1)
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_columnconfigure(1, weight=1)
 
         self._build_input_panel(left)
         self._build_output_panel(right)
+
+        # Bind the frame to update canvas scroll region when its size changes
+        def on_frame_configure(event):
+            # Make the canvas window width match the canvas width
+            if self.canvas.winfo_width() > 1:  # Ensure canvas has a valid width
+                self.canvas.itemconfig(self.canvas_window_id, width=self.canvas.winfo_width())
+            self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        frame.bind("<Configure>", on_frame_configure)
+        
+        # Enable mousewheel scrolling (vertical)
+        def on_mousewheel(event):
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        self.canvas.bind_all("<MouseWheel>", on_mousewheel)
+        
+        # Enable Shift+mousewheel for horizontal scrolling
+        def on_shift_mousewheel(event):
+            self.canvas.xview_scroll(int(-1*(event.delta/120)), "units")
+        self.canvas.bind_all("<Shift-MouseWheel>", on_shift_mousewheel)
 
     def _build_input_panel(self, container: tk.Frame) -> None:
         """Build the left input panel containing project and student entry fields.
@@ -150,6 +210,7 @@ class CapstoneMapperApp:
         Args:
             container: The parent frame to place the input panel in.
         """
+        # Row 0: Projects label
         label = tk.Label(
             container,
             text="Project Capacities",
@@ -157,13 +218,13 @@ class CapstoneMapperApp:
             bg=self.themes[self.current_theme]["panel"],
             fg=self.themes[self.current_theme]["accent"],
         )
-        label.pack(anchor="w", padx=12, pady=(12, 6))
+        label.grid(row=0, column=0, sticky="w", padx=12, pady=(12, 6))
         self.ui_elements["projects_label"] = label
 
+        # Row 1: Projects text box
         self.projects_text = scrolledtext.ScrolledText(
             container,
             wrap="word",
-            height=10,
             bg=self.themes[self.current_theme]["input_bg"],
             fg=self.themes[self.current_theme]["input_fg"],
             font=("Segoe UI", 10),
@@ -171,12 +232,13 @@ class CapstoneMapperApp:
             padx=8,
             pady=8,
         )
-        self.projects_text.pack(fill="both", expand=True, padx=12)
+        self.projects_text.grid(row=1, column=0, sticky="nsew", padx=12, pady=6)
         self.projects_text.insert("1.0", SAMPLE_PROJECTS)
         self.ui_elements["projects_text"] = self.projects_text
 
+        # Row 2: Project import button
         loader_frame = tk.Frame(container, bg=self.themes[self.current_theme]["panel"])
-        loader_frame.pack(fill="x", padx=12, pady=(8, 0))
+        loader_frame.grid(row=2, column=0, sticky="w", padx=12, pady=(0, 8))
         self.ui_elements["loader_frame"] = loader_frame
 
         project_import_button = tk.Button(
@@ -192,6 +254,7 @@ class CapstoneMapperApp:
         project_import_button.pack(side="left", padx=(0, 6))
         self.ui_elements["project_import_button"] = project_import_button
 
+        # Row 3: Students label
         students_label = tk.Label(
             container,
             text="Student Rankings",
@@ -199,13 +262,13 @@ class CapstoneMapperApp:
             bg=self.themes[self.current_theme]["panel"],
             fg=self.themes[self.current_theme]["accent"],
         )
-        students_label.pack(anchor="w", padx=12, pady=(16, 6))
+        students_label.grid(row=3, column=0, sticky="w", padx=12, pady=(12, 6))
         self.ui_elements["students_label"] = students_label
 
+        # Row 4: Students text box
         self.students_text = scrolledtext.ScrolledText(
             container,
             wrap="word",
-            height=12,
             bg=self.themes[self.current_theme]["input_bg"],
             fg=self.themes[self.current_theme]["input_fg"],
             font=("Segoe UI", 10),
@@ -213,12 +276,13 @@ class CapstoneMapperApp:
             padx=8,
             pady=8,
         )
-        self.students_text.pack(fill="both", expand=True, padx=12)
+        self.students_text.grid(row=4, column=0, sticky="nsew", padx=12, pady=6)
         self.students_text.insert("1.0", SAMPLE_STUDENTS)
         self.ui_elements["students_text"] = self.students_text
 
+        # Row 5: Student import button
         student_import_frame = tk.Frame(container, bg=self.themes[self.current_theme]["panel"])
-        student_import_frame.pack(fill="x", padx=12, pady=(8, 0))
+        student_import_frame.grid(row=5, column=0, sticky="w", padx=12, pady=(0, 8))
         self.ui_elements["student_import_frame"] = student_import_frame
 
         student_import_button = tk.Button(
@@ -234,8 +298,9 @@ class CapstoneMapperApp:
         student_import_button.pack(side="left")
         self.ui_elements["student_import_button"] = student_import_button
 
+        # Row 6: Buttons
         button_frame = tk.Frame(container, bg=self.themes[self.current_theme]["panel"])
-        button_frame.pack(fill="x", padx=12, pady=14)
+        button_frame.grid(row=6, column=0, sticky="ew", padx=12, pady=14)
         self.ui_elements["button_frame"] = button_frame
 
         assign_button = tk.Button(
@@ -244,7 +309,6 @@ class CapstoneMapperApp:
             command=self.run_assignment,
             bg=self.themes[self.current_theme]["accent"],
             fg=self.themes[self.current_theme]["text"],
-            width=16,
             relief="flat",
             padx=10,
             pady=8,
@@ -258,7 +322,6 @@ class CapstoneMapperApp:
             command=self.clear_output,
             bg=self.themes[self.current_theme]["button_bg"],
             fg=self.themes[self.current_theme]["text"],
-            width=14,
             relief="flat",
             padx=10,
             pady=8,
@@ -272,7 +335,6 @@ class CapstoneMapperApp:
             command=self.save_csv,
             bg=self.themes[self.current_theme]["button_bg"],
             fg=self.themes[self.current_theme]["text"],
-            width=12,
             relief="flat",
             padx=10,
             pady=8,
@@ -286,13 +348,23 @@ class CapstoneMapperApp:
             command=self.toggle_theme,
             bg=self.themes[self.current_theme]["button_bg"],
             fg=self.themes[self.current_theme]["text"],
-            width=12,
             relief="flat",
             padx=10,
             pady=8,
         )
         theme_button.pack(side="left", padx=(8, 0))
         self.ui_elements["theme_button"] = theme_button
+
+        # Control vertical space distribution
+        container.grid_rowconfigure(0, weight=0)  # Projects label
+        container.grid_rowconfigure(1, weight=3)  # Projects text
+        container.grid_rowconfigure(2, weight=0)  # Import button
+        container.grid_rowconfigure(3, weight=0)  # Students label
+        container.grid_rowconfigure(4, weight=3)  # Students text
+        container.grid_rowconfigure(5, weight=0)  # Import button
+        container.grid_rowconfigure(6, weight=0)  # Action buttons
+
+        container.grid_columnconfigure(0, weight=1)
 
     def _build_output_panel(self, container: tk.Frame) -> None:
         """Build the right output panel for displaying assignment results.
@@ -310,13 +382,12 @@ class CapstoneMapperApp:
             bg=self.themes[self.current_theme]["panel"],
             fg=self.themes[self.current_theme]["accent"],
         )
-        label.pack(anchor="w", padx=12, pady=(12, 6))
+        label.grid(row=0, column=0, sticky="w", padx=12, pady=(12, 6))
         self.ui_elements["output_label"] = label
 
         self.output_text = scrolledtext.ScrolledText(
             container,
             wrap="word",
-            height=34,
             bg=self.themes[self.current_theme]["output_bg"],
             fg=self.themes[self.current_theme]["text"],
             font=("Segoe UI", 10),
@@ -325,8 +396,12 @@ class CapstoneMapperApp:
             pady=8,
             state="disabled",
         )
-        self.output_text.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+        self.output_text.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 12))
         self.ui_elements["output_text"] = self.output_text
+        
+        # Configure grid weights to make text area expandable
+        container.grid_rowconfigure(1, weight=1)
+        container.grid_columnconfigure(0, weight=1)
 
     def set_output(self, content: str) -> None:
         """Update the output text area with new content.
@@ -497,6 +572,12 @@ class CapstoneMapperApp:
             
             # Update main window
             self.master.configure(bg=theme["bg"])
+            
+            # Update canvas and scrollbar
+            if "canvas_frame" in self.ui_elements:
+                self.ui_elements["canvas_frame"].configure(bg=theme["bg"])
+            if "canvas" in self.ui_elements:
+                self.ui_elements["canvas"].configure(bg=theme["bg"])
             
             # Update main UI elements
             if "header" in self.ui_elements:

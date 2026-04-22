@@ -445,8 +445,9 @@ class CapstoneMapperApp:
             self.last_students = students
             assignments = assign_students_to_projects(students, projects)
             self.last_assignments = assignments
+            quality = calculate_match_quality(assignments, students)
             report = build_report(assignments)
-            self.set_output(report)
+            self.set_output(quality + "\n\n" + report)
         except AssignmentError as error:
             messagebox.showerror("Input Error", str(error))
         except Exception as error:

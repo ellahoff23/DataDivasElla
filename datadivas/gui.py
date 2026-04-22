@@ -2,7 +2,7 @@ import csv
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
 
-from .assignment import AssignmentError, assign_students_to_projects, build_report, get_rank, parse_projects, parse_student_rankings
+from .assignment import AssignmentError, assign_students_to_projects, build_report, calculate_match_quality, get_rank, parse_projects, parse_student_rankings
 
 # Sample data for demonstration purposes. Shows the expected format for
 # project capacities and student rankings.
@@ -59,9 +59,9 @@ class CapstoneMapperApp:
         """
         self.master = master
         # Store last assignment results for CSV export
-        self.last_assignments: Dict[str, str | None] = {}
+        self.last_assignments: dict[str, str | None] = {}
         # Store parsed student rankings for reference when building export
-        self.last_students: Dict[str, List[str]] = {}
+        self.last_students: dict[str, list[str]] = {}
         
         # Define color schemes for dark and light themes
         self.themes = {
@@ -520,8 +520,9 @@ class CapstoneMapperApp:
             self.last_students = students
             assignments = assign_students_to_projects(students, projects)
             self.last_assignments = assignments
+            quality = calculate_match_quality(assignments, students)
             report = build_report(assignments)
-            self.set_output(report)
+            self.set_output(quality + "\n\n" + report)
         except AssignmentError as error:
             messagebox.showerror("Input Error", str(error))
         except Exception as error:

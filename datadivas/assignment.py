@@ -261,3 +261,38 @@ def build_report(assignments: Dict[str, Optional[str]]) -> str:
         for project, students in sorted(by_project.items())
     ]
     return "\n".join(rows)
+
+
+def calculate_match_quality(assignments, student_rankings):
+    """Calculate the percentage of students who got their 1st, 2nd, and 3rd choices.
+
+    Args:
+        assignments: Dictionary mapping student names to assigned project names (or None).
+        student_rankings: Dictionary mapping student names to their ranked list of projects.
+
+    Returns:
+        A formatted string with the percentages for 1st, 2nd, and 3rd choices.
+    """
+    first_choice = 0
+    second_choice = 0
+    third_choice = 0
+    total_assigned = 0
+    for student, assigned in assignments.items():
+        if assigned is None:
+            continue
+        rankings = student_rankings.get(student, [])
+        if assigned in rankings:
+            rank = rankings.index(assigned) + 1
+            if rank == 1:
+                first_choice += 1
+            elif rank == 2:
+                second_choice += 1
+            elif rank == 3:
+                third_choice += 1
+        total_assigned += 1
+    if total_assigned == 0:
+        return "No students assigned."
+    first_pct = (first_choice / total_assigned) * 100
+    second_pct = (second_choice / total_assigned) * 100
+    third_pct = (third_choice / total_assigned) * 100
+    return f"1st choice: {first_pct:.1f}%, 2nd choice: {second_pct:.1f}%, 3rd choice: {third_pct:.1f}%"

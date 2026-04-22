@@ -261,3 +261,29 @@ def build_report(assignments: Dict[str, Optional[str]]) -> str:
         for project, students in sorted(by_project.items())
     ]
     return "\n".join(rows)
+
+
+def calculate_match_quality(assignments: Dict[str, Optional[str]], student_rankings: Dict[str, List[str]]) -> float:
+    """Calculate the average match quality of assignments against student rankings.
+
+    For each student, determines the rank of their assigned project in their preference list.
+    If a student is unassigned or their assigned project is not in their rankings,
+    they receive a penalty rank equal to the length of their rankings plus one.
+
+    Args:
+        assignments: Dictionary mapping student names to assigned project names (or None).
+        student_rankings: Dictionary mapping student names to their ranked list of projects.
+
+    Returns:
+        The average rank across all students (lower is better, with 1.0 being perfect match).
+    """
+    total_quality = 0.0
+    num_students = len(assignments)
+    for student, assigned in assignments.items():
+        rankings = student_rankings.get(student, [])
+        if assigned is None or assigned not in rankings:
+            rank = len(rankings) + 1
+        else:
+            rank = rankings.index(assigned) + 1
+        total_quality += rank
+    return total_quality / num_students if num_students > 0 else 0.0

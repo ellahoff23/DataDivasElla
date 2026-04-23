@@ -103,29 +103,29 @@ class CapstoneMapperApp:
         
         # Configure main window
         master.title("Capstone Placement App")
-        # Set window size to fit standard screens without scrolling
-        master.geometry("980x650")
+        master.geometry("1000x700")
         master.state('zoomed')
+        master.minsize(800, 600)
         master.configure(bg=self.themes[self.current_theme]["bg"])
 
         header = tk.Label(
             master,
             text="Capstone Placement App",
-            font=("Segoe UI", 20, "bold"),
+            font=("Segoe UI", 24, "bold"),
             bg=self.themes[self.current_theme]["bg"],
             fg=self.themes[self.current_theme]["text"],
         )
-        header.pack(padx=16, pady=(12, 6))
+        header.pack(padx=16, pady=(10, 4))
         self.ui_elements["header"] = header
 
         subtitle = tk.Label(
             master,
             text="Use ranked student preferences and project capacities to generate team placement suggestions.",
-            font=("Segoe UI", 10),
+            font=("Segoe UI", 12),
             bg=self.themes[self.current_theme]["bg"],
             fg=self.themes[self.current_theme]["subtitle_fg"],
         )
-        subtitle.pack(padx=16, pady=(0, 16))
+        subtitle.pack(padx=16, pady=(0, 12))
         self.ui_elements["subtitle"] = subtitle
 
         # Create a canvas with scrollbars for the main content
@@ -176,10 +176,10 @@ class CapstoneMapperApp:
         right.grid(row=0, column=1, sticky="nsew", pady=2)
         self.ui_elements["right_frame"] = right
 
-        # Configure frame grid weights for equal column distribution
+        # Configure frame grid weights for 40/60 column distribution
         frame.grid_rowconfigure(0, weight=1)
-        frame.grid_columnconfigure(0, weight=1)
-        frame.grid_columnconfigure(1, weight=1)
+        frame.grid_columnconfigure(0, weight=4)
+        frame.grid_columnconfigure(1, weight=6)
 
         self._build_input_panel(left)
         self._build_output_panel(right)
@@ -215,7 +215,7 @@ class CapstoneMapperApp:
         label = tk.Label(
             container,
             text="Project Capacities",
-            font=("Segoe UI", 12, "bold"),
+            font=("Segoe UI", 14, "bold"),
             bg=self.themes[self.current_theme]["panel"],
             fg=self.themes[self.current_theme]["accent"],
         )
@@ -228,11 +228,11 @@ class CapstoneMapperApp:
             wrap="word",
             bg=self.themes[self.current_theme]["input_bg"],
             fg=self.themes[self.current_theme]["input_fg"],
-            font=("Segoe UI", 10),
+            font=("Segoe UI", 12),
             relief="flat",
             padx=8,
             pady=8,
-            height=8,
+            height=6,
         )
         self.projects_text.grid(row=1, column=0, sticky="nsew", padx=12, pady=6)
         self.projects_text.insert("1.0", SAMPLE_PROJECTS)
@@ -240,7 +240,7 @@ class CapstoneMapperApp:
 
         # Row 2: Project import button
         loader_frame = tk.Frame(container, bg=self.themes[self.current_theme]["panel"])
-        loader_frame.grid(row=2, column=0, sticky="w", padx=12, pady=(0, 8))
+        loader_frame.grid(row=2, column=0, sticky="w", padx=12, pady=(0, 10))
         self.ui_elements["loader_frame"] = loader_frame
 
         project_import_button = tk.Button(
@@ -260,7 +260,7 @@ class CapstoneMapperApp:
         students_label = tk.Label(
             container,
             text="Student Rankings",
-            font=("Segoe UI", 12, "bold"),
+            font=("Segoe UI", 14, "bold"),
             bg=self.themes[self.current_theme]["panel"],
             fg=self.themes[self.current_theme]["accent"],
         )
@@ -273,11 +273,11 @@ class CapstoneMapperApp:
             wrap="word",
             bg=self.themes[self.current_theme]["input_bg"],
             fg=self.themes[self.current_theme]["input_fg"],
-            font=("Segoe UI", 10),
+            font=("Segoe UI", 12),
             relief="flat",
             padx=8,
             pady=8,
-            height=10,
+            height=8,
         )
         self.students_text.grid(row=4, column=0, sticky="nsew", padx=12, pady=6)
         self.students_text.insert("1.0", SAMPLE_STUDENTS)
@@ -285,7 +285,7 @@ class CapstoneMapperApp:
 
         # Row 5: Student import button
         student_import_frame = tk.Frame(container, bg=self.themes[self.current_theme]["panel"])
-        student_import_frame.grid(row=5, column=0, sticky="w", padx=12, pady=(0, 8))
+        student_import_frame.grid(row=5, column=0, sticky="w", padx=12, pady=(0, 10))
         self.ui_elements["student_import_frame"] = student_import_frame
 
         student_import_button = tk.Button(
@@ -381,7 +381,7 @@ class CapstoneMapperApp:
         label = tk.Label(
             container,
             text="Assignment Results",
-            font=("Segoe UI", 12, "bold"),
+            font=("Segoe UI", 14, "bold"),
             bg=self.themes[self.current_theme]["panel"],
             fg=self.themes[self.current_theme]["accent"],
         )
@@ -393,11 +393,11 @@ class CapstoneMapperApp:
             wrap="word",
             bg=self.themes[self.current_theme]["output_bg"],
             fg=self.themes[self.current_theme]["text"],
-            font=("Segoe UI", 10),
+            font=("Segoe UI", 12),
             relief="flat",
             padx=8,
             pady=8,
-            height=25,
+            height=20,
             state="disabled",
         )
         self.output_text.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 12))

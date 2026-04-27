@@ -372,24 +372,29 @@ class CapstoneMapperApp:
     def _build_output_panel(self, container: tk.Frame) -> None:
         """Build the right output panel for displaying assignment results.
         
-        Creates a read-only text area where assignment results are displayed
-        and from which students can copy results.
+        Creates two sub-frames: one for project assignments and one for
+        assignment quality metrics.
         
         Args:
             container: The parent frame to place the output panel in.
         """
-        label = tk.Label(
-            container,
-            text="Assignment Results",
+        # Create results frame for project assignments
+        results_frame = tk.Frame(container, bg=self.themes[self.current_theme]["panel"])
+        results_frame.grid(row=0, column=0, sticky="nsew", padx=12, pady=(0, 6))
+        self.ui_elements["results_frame"] = results_frame
+
+        results_label = tk.Label(
+            results_frame,
+            text="Project Assignments",
             font=("Segoe UI", 14, "bold"),
             bg=self.themes[self.current_theme]["panel"],
             fg=self.themes[self.current_theme]["accent"],
         )
-        label.grid(row=0, column=0, sticky="w", padx=12, pady=(8, 4))
-        self.ui_elements["output_label"] = label
+        results_label.pack(anchor="w", padx=0, pady=(8, 4))
+        self.ui_elements["output_label"] = results_label
 
         self.output_text = scrolledtext.ScrolledText(
-            container,
+            results_frame,
             wrap="word",
             bg=self.themes[self.current_theme]["output_bg"],
             fg=self.themes[self.current_theme]["text"],
@@ -397,14 +402,45 @@ class CapstoneMapperApp:
             relief="flat",
             padx=8,
             pady=8,
-            height=20,
+            height=15,
             state="disabled",
         )
-        self.output_text.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 12))
+        self.output_text.pack(fill="both", expand=True)
         self.ui_elements["output_text"] = self.output_text
+
+        # Create metrics frame for assignment quality metrics
+        metrics_frame = tk.Frame(container, bg=self.themes[self.current_theme]["panel"])
+        metrics_frame.grid(row=1, column=0, sticky="nsew", padx=12, pady=(6, 12))
+        self.ui_elements["metrics_frame"] = metrics_frame
+
+        metrics_label = tk.Label(
+            metrics_frame,
+            text="Assignment Quality Metrics",
+            font=("Segoe UI", 14, "bold"),
+            bg=self.themes[self.current_theme]["panel"],
+            fg=self.themes[self.current_theme]["accent"],
+        )
+        metrics_label.pack(anchor="w", padx=0, pady=(8, 4))
+        self.ui_elements["metrics_label"] = metrics_label
+
+        self.metrics_text = scrolledtext.ScrolledText(
+            metrics_frame,
+            wrap="word",
+            bg=self.themes[self.current_theme]["output_bg"],
+            fg=self.themes[self.current_theme]["text"],
+            font=("Segoe UI", 12),
+            relief="flat",
+            padx=8,
+            pady=8,
+            height=8,
+            state="disabled",
+        )
+        self.metrics_text.pack(fill="both", expand=True)
+        self.ui_elements["metrics_text"] = self.metrics_text
         
-        # Configure grid weights to make text area expandable
-        container.grid_rowconfigure(1, weight=1)
+        # Configure grid weights to make both frames expandable
+        container.grid_rowconfigure(0, weight=3)
+        container.grid_rowconfigure(1, weight=2)
         container.grid_columnconfigure(0, weight=1)
 
     def set_output(self, content: str) -> None:
@@ -421,9 +457,24 @@ class CapstoneMapperApp:
         self.output_text.insert(tk.END, content)
         self.output_text.config(state="disabled")
 
+    def set_metrics(self, content: str) -> None:
+        """Update the metrics text area with new content.
+        
+        Temporarily enables the metrics text area (which is normally read-only),
+        clears old content, inserts new content, and re-disables editing.
+        
+        Args:
+            content: The text to display in the metrics panel.
+        """
+        self.metrics_text.config(state="normal")
+        self.metrics_text.delete("1.0", tk.END)
+        self.metrics_text.insert(tk.END, content)
+        self.metrics_text.config(state="disabled")
+
     def clear_output(self) -> None:
         """Clear the output panel by setting it to empty text."""
         self.set_output("")
+        self.set_metrics("")
 
     def _load_csv_file(self, title: str) -> list[dict[str, str]]:
         """Open a file dialog and load a CSV file.
@@ -535,7 +586,9 @@ class CapstoneMapperApp:
             self.last_result = result
             stats = calculate_match_quality(result, students)
             report = build_report(result)
-            self.set_output(report + "\n\n" + stats)
+            self.set_output(report)
+            self.set_metrics(stats)
+
         except AssignmentError as error:
             messagebox.showerror("Input Error", str(error))
         except Exception as error:
@@ -653,10 +706,18 @@ class CapstoneMapperApp:
                 )
             
             # Update output panel elements
+            if "results_frame" in self.ui_elements:
+                self.ui_elements["results_frame"].configure(bg=theme["panel"])
             if "output_label" in self.ui_elements:
                 self.ui_elements["output_label"].configure(bg=theme["panel"], fg=theme["accent"])
             if "output_text" in self.ui_elements:
                 self.ui_elements["output_text"].configure(bg=theme["output_bg"], fg=theme["text"])
+            if "metrics_frame" in self.ui_elements:
+                self.ui_elements["metrics_frame"].configure(bg=theme["panel"])
+            if "metrics_label" in self.ui_elements:
+                self.ui_elements["metrics_label"].configure(bg=theme["panel"], fg=theme["accent"])
+            if "metrics_text" in self.ui_elements:
+                self.ui_elements["metrics_text"].configure(bg=theme["output_bg"], fg=theme["text"])
                 
         except Exception as e:
             # If there's an error, show it and revert the theme change

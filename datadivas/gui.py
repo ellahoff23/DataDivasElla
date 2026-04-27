@@ -693,10 +693,14 @@ class CapstoneMapperApp:
                 )
             
             # Update output panel elements
+            if "results_frame" in self.ui_elements:
+                self.ui_elements["results_frame"].configure(bg=theme["panel"])
             if "output_label" in self.ui_elements:
                 self.ui_elements["output_label"].configure(bg=theme["panel"], fg=theme["accent"])
             if "output_text" in self.ui_elements:
                 self.ui_elements["output_text"].configure(bg=theme["output_bg"], fg=theme["text"])
+            if "metrics_frame" in self.ui_elements:
+                self.ui_elements["metrics_frame"].configure(bg=theme["panel"])
             if "metrics_label" in self.ui_elements:
                 self.ui_elements["metrics_label"].configure(bg=theme["panel"], fg=theme["accent"])
             if "metrics_text" in self.ui_elements:

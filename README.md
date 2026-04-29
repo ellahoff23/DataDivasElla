@@ -1,76 +1,92 @@
-# DataDivas
+# DataDivasLena
 
-DataDivas is a desktop Python app that helps the ECCS chair map students to capstone projects using student-ranked project preferences. It implements a proposal-based matching algorithm to optimize assignment quality while respecting project capacity constraints.
+DataDivasLena is a student-to-project mapper for capstone planning. It helps ECCS organizers assign students to projects using ranked preferences, major eligibility, and team-size constraints.
 
-## What it does
+## Overview
 
-- **Accepts project data**: List of projects with capacities constrained to 4-6 students per project (enforced by ECCS guidelines).
-- **Accepts student preferences**: Student rankings for projects in order of preference.
-- **Computes optimal assignments**: Uses a proposal-based algorithm (similar to stable matching) to honor student preferences while respecting capacity limits.
-- **Validates all input**: Ensures consistent data format, prevents duplicates, and requires valid capacity ranges.
-- **Provides an intuitive GUI**: Desktop interface for entering data, viewing results, and exporting assignments.
-- **Exports results**: Save assignment results to CSV with each student's assigned project and how well it matched their preferences.
+- Student-to-project matching app built for capstone team planning.
+- Web interface powered by Streamlit for browser-based access.
+- Optimization logic powered by Google OR-Tools CP-SAT.
+- Enforces the Nixing Rule, major eligibility, and diversity/monoculture penalties.
+
+## Setup Instructions
+
+Install dependencies:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Launch the app:
+
+```bash
+python -m streamlit run streamlit_app.py
+```
+
+Then open the browser page shown by Streamlit.
+
+## Input Formatting
+
+### Projects
+Each project line must use:
+
+```
+Project Name,capacity,major1,major2,...
+```
+
+Example:
+
+```
+Project Apollo,4,CS,CpE,EE
+Project Atlas,4,CS,EE
+Project Beacon,5,CS,CpE
+Project Cypress,4,CpE,EE
+```
+
+### Students
+Each student line must use:
+
+```
+Student Name (major): project1, project2
+```
+
+Example:
+
+```
+Alice (CS): Project Apollo, Project Atlas, Project Beacon
+Ben (CpE): Project Atlas, Project Cypress, Project Apollo
+Carmen (EE): Project Beacon, Project Apollo, Project Atlas
+```
 
 ## Features
 
-- **Standard-library only**: No third-party dependencies—uses only Python standard library (tkinter, csv, difflib).
-- **Cross-platform GUI**: Tkinter interface runs on Windows, macOS, and Linux.
-- **Robust validation**: Comprehensive input validation with clear error messages for common issues.
-- **Multiple import formats**: Load project and student data from CSV files or enter manually.
-- **Preference tracking**: CSV export shows how well each student's assignment matches their ranked preferences.
-- **Capacity enforcement**: Ensures no project exceeds its capacity and maintains minimum team size of 4 students.
-- **Theme support**: Choose between dark and light color schemes in the GUI.
-- **Comprehensive testing**: Unit tests cover parsing logic, validation, and assignment correctness.
+- **Nixing Rule**: A project must have either 0 students or 4-6 students.
+- **Major eligibility**: Students can only be assigned to projects that accept their major.
+- **Diversity / monoculture penalty**: The optimization favors mixed-major teams and penalizes single-major teams.
+- **OR-Tools CP-SAT optimizer** for assignment decisions.
+- **CSV upload** for projects and student rankings.
+- **Downloadable CSV** for final assignments.
+- **Clear error handling** for malformed or invalid input.
 
-## Getting started
+## How it works
 
-1. Install Python 3.9+ if needed.
-2. Open a terminal in this repository.
-3. Run the app:
+The app parses project and student text input, validates the data, and runs an OR-Tools CP-SAT model to assign students to projects. Project capacity, major eligibility, and team composition are enforced as hard constraints, while student preference ranking and diversity are optimized.
 
-```bash
-python main.py
-```
+## File layout
 
-## Usage
-
-1. Enter project capacities in the left panel using `Project Name,capacity` lines.
-   - Capacities must be set between 4 and 6 inclusive.
-2. Enter student rankings using `Student Name: Project 1, Project 2, ...` lines.
-3. Optionally import project or student data from CSV using the provided buttons.
-   - Projects CSV should include headers like `Project` and `Capacity`.
-   - Students CSV should include headers like `Student` and `Rankings`.
-4. Click `Run Assignment`.
-5. Review the assignment results grouped by project.
-6. Export to CSV if desired—results will list each student with their assigned project.
-
-## Example Output
-
-```
-Project Apollo: Alice, Diana
-Project Atlas: Ben, Frank
-Project Beacon: Carmen
-Unassigned: Eve
-```
+- `streamlit_app.py` — Streamlit entry point for the active web application.
+- `requirements.txt` — Python dependencies for the app.
+- `datadivas/assignment.py` — Core assignment logic and optimization model.
+- `datadivas/__init__.py` — Package exports for the datadivas package.
+- `tests/` — Unit tests for assignment parsing and validation.
+- `README.md` — Human-facing project documentation.
+- `ROBOTS.md` — AI-centric project structure and logic documentation.
 
 ## Testing
 
-Run the unit tests with:
+Run unit tests:
 
 ```bash
 python -m unittest discover -s tests
 ```
 
-## File layout
-
-- `main.py` — application entry point that launches the GUI.
-- `datadivas/gui.py` — desktop interface implementation.
-- `datadivas/assignment.py` — assignment and validation logic.
-- `tests/test_assignment.py` — test coverage for parsing and assignment behavior.
-- `ROBOTS.md` — AI/automation guidance.
-
-## Design notes
-
-- The algorithm honors student rankings and project capacity.
-- Students may remain unassigned when project capacity is insufficient.
-- The app can be extended with additional project constraints or group sizing rules.

@@ -168,10 +168,20 @@ def assign_students_to_projects(
             "Unrecognized projects in student rankings: " + ", ".join(sorted(invalid_projects))
         )
 
-    # Create CP-SAT model
-    model = cp_model.CpModel()
+    # Compute total student interest for each project across all rankings.
+    # Count each student only once per project, even if the same project appears
+    # multiple times in a malformed ranking list.
     students = list(student_data.keys())
     projects = list(project_data.keys())
+    project_interest = {p: 0 for p in projects}
+    for s_data in student_data.values():
+        ranked_projects = set(s_data['rankings'])
+        for project_name in ranked_projects:
+            if project_name in project_interest:
+                project_interest[project_name] += 1
+
+    # Create CP-SAT model
+    model = cp_model.CpModel()
 
     # 1. Decision variables
     x = {(s, p): model.NewBoolVar(f'x_{s}_{p}') for s in students for p in projects}
@@ -270,12 +280,18 @@ def assign_students_to_projects(
             else:
                  project_compositions[p] = {}
         
-        return {'assignments': assignments, 'student_majors': student_majors, 'project_compositions': project_compositions}
+        return {
+            'assignments': assignments,
+            'student_majors': student_majors,
+            'project_compositions': project_compositions,
+            'project_interest': project_interest,
+        }
     else:
         return {
             'assignments': {s: None for s in students},
             'student_majors': {s: student_data[s]['major'] for s in students},
-            'project_compositions': {p: {} for p in projects}
+            'project_compositions': {p: {} for p in projects},
+            'project_interest': project_interest,
         }
 
 

@@ -4,10 +4,11 @@ DataDivasLena is a student-to-project mapper for capstone planning. It helps ECC
 
 ## Overview
 
-- Student-to-project matching app built for capstone team planning.
-- Web interface powered by Streamlit for browser-based access.
-- Optimization logic powered by Google OR-Tools CP-SAT.
-- Enforces the Nixing Rule, major eligibility, and diversity/monoculture penalties.
+- Student-to-project matching tool for capstone team formation.
+- Browser-based interface built with Streamlit.
+- Optimization engine uses Google OR-Tools CP-SAT.
+- Supports flexible CSV upload for projects and student rankings.
+- Enforces the Nixing Rule and major eligibility, and encourages mixed-major teams.
 
 ## Setup Instructions
 
@@ -60,31 +61,30 @@ Carmen (EE): Project Beacon, Project Apollo, Project Atlas
 
 ## Features
 
-- **Nixing Rule**: A project must have either 0 students or 4-6 students.
+- **Nixing Rule**: Each project is either inactive (0 students) or active with 4-6 students.
 - **Major eligibility**: Students can only be assigned to projects that accept their major.
-- **Diversity / monoculture penalty**: The optimization favors mixed-major teams and penalizes single-major teams.
-- **OR-Tools CP-SAT optimizer** for assignment decisions.
-- **CSV upload** for projects and student rankings.
-- **Downloadable CSV** for final assignments.
-- **Clear error handling** for malformed or invalid input.
+- **Diversity penalty**: The solver favors mixed-major teams over mono-major teams.
+- **Flexible CSV parsing** for both project and student files.
+- **Downloadable CSV export** of final assignments.
+- **Admin diagnostics** available from the Streamlit sidebar when admin access is enabled.
 
 ## How it works
 
-The app parses project and student text input, validates the data, and runs an OR-Tools CP-SAT model to assign students to projects. Project capacity, major eligibility, and team composition are enforced as hard constraints, while student preference ranking and diversity are optimized.
+The app parses project and student input, validates the data, and runs a CP-SAT optimization model to assign students to projects. Project capacity, eligibility, and team composition are hard constraints, while student preference ranking and diversity are optimized.
 
 ## File layout
 
-- `streamlit_app.py` — Streamlit entry point for the active web application.
+- `streamlit_app.py` — Streamlit web application entry point.
 - `requirements.txt` — Python dependencies for the app.
-- `datadivas/assignment.py` — Core assignment logic and optimization model.
+- `datadivas/assignment.py` — Core assignment logic, parsing, validation, and optimization.
 - `datadivas/__init__.py` — Package exports for the datadivas package.
-- `tests/` — Unit tests for assignment parsing and validation.
+- `tests/` — Unit tests covering parsing, validation, and assignment behavior.
 - `README.md` — Human-facing project documentation.
-- `ROBOTS.md` — AI-centric project structure and logic documentation.
+- `ROBOTS.md` — AI-facing description of project structure and behavior.
 
 ## Testing
 
-Run unit tests:
+Run the unit tests:
 
 ```bash
 python -m unittest discover -s tests

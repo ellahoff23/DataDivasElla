@@ -1,7 +1,7 @@
 """DataDivas project mapping package.
 
 This package provides the core assignment logic for mapping students to capstone
-projects based on ranked preferences and project capacity constraints.
+projects based on ranked preferences, major eligibility, and project capacity constraints.
 
 Main exports:
 - assign_students_to_projects(): Run the assignment algorithm

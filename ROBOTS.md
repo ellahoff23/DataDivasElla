@@ -5,13 +5,13 @@
 - Root folder:
   - `streamlit_app.py` — active Streamlit web application entry point.
   - `requirements.txt` — dependency list for the web app.
-  - `README.md` — human-centric project overview and usage instructions.
+  - `README.md` — human-facing project overview and usage instructions.
   - `ROBOTS.md` — AI-facing project description and logic flow.
 - `datadivas/` package:
-  - `assignment.py` — core optimization and validation logic.
+  - `assignment.py` — core parsing, validation, scoring, and optimization logic.
   - `__init__.py` — package exports for importing from `datadivas`.
 - `tests/` folder:
-  - Contains unit tests for parsing, validation, and assignment behavior.
+  - Contains unit tests for parsing, validation, assignment constraints, and performance.
 
 ## Logic Flow
 
@@ -20,6 +20,7 @@
 - The Streamlit app collects project and student input, optionally loads CSV data, and parses it into Python dictionaries.
 - The app calls `assign_students_to_projects()` to run the OR-Tools CP-SAT solver.
 - Results are displayed in tables and provided as downloadable CSV.
+- An admin diagnostics panel can run the test suite and surface pass/fail metrics.
 
 ## Technical Stack
 
@@ -27,7 +28,7 @@
 - Streamlit for the web UI
 - pandas for CSV parsing and input handling
 - Google OR-Tools CP-SAT solver for the optimization model
-- Standard library `csv` and `io` for CSV export
+- Standard library `csv`, `io`, and `re` for file export and diagnostics parsing
 
 ## Optimization Summary
 
@@ -37,3 +38,4 @@
   - major eligibility
   - Nixing Rule: projects must have 0 or 4-6 students
 - Uses soft penalties for preference rankings and team composition.
+- Builds project composition summaries and assignment quality metrics for reporting.

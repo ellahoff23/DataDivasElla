@@ -1,8 +1,8 @@
 """Core assignment logic for the DataDivas project mapper.
 
-This module implements the student-to-project assignment algorithm,
-which uses a proposal-based matching model similar to stable matching.
-It includes input parsing, validation, and report generation.
+This module implements parsing, validation, scoring, and assignment using
+Google OR-Tools CP-SAT optimization. It supports project capacities,
+major eligibility, the Nixing Rule, and diversity-aware team formation.
 """
 
 from collections import deque
@@ -428,3 +428,68 @@ def calculate_match_quality(result, student_data):
     second_pct = (second_choice / total_assigned) * 100
     third_pct = (third_choice / total_assigned) * 100
     return f"1st choice: {first_pct:.1f}%, 2nd choice: {second_pct:.1f}%, 3rd choice: {third_pct:.1f}%"
+
+
+def run_diagnostics():
+    """Run the unit test suite and return results.
+    
+    Returns:
+        Tuple of (all_passed: bool, output: str, passed_names: list[str], failed_names: list[str])
+    """
+    import unittest
+    import sys
+    from io import StringIO
+    
+    def flatten_suite(test_suite):
+        tests = []
+        for item in test_suite:
+            if isinstance(item, unittest.TestSuite):
+                tests.extend(flatten_suite(item))
+            else:
+                tests.append(item)
+        return tests
+    
+    # Capture stdout
+    old_stdout = sys.stdout
+    sys.stdout = captured_output = StringIO()
+    
+    try:
+        # Load and run tests
+        loader = unittest.TestLoader()
+        suite = loader.discover('tests', pattern='test_*.py')
+        runner = unittest.TextTestRunner(verbosity=2, stream=captured_output)
+        result = runner.run(suite)
+        
+        output = captured_output.getvalue()
+        all_passed = result.wasSuccessful()
+
+        failure_ids = set()
+        for test, _ in result.failures + result.errors:
+            if test is not None and hasattr(test, 'id'):
+                try:
+                    failure_ids.add(test.id())
+                except Exception:
+                    continue
+
+        all_tests = flatten_suite(suite)
+        passed_names = []
+        failed_names = []
+        for test in all_tests:
+            test_name = 'Unknown Test'
+            test_id = None
+            if test is not None and hasattr(test, 'id'):
+                try:
+                    test_id = test.id()
+                    if isinstance(test_id, str) and test_id:
+                        test_name = test_id.split('.')[-1]
+                except Exception:
+                    test_id = None
+
+            if test_id in failure_ids:
+                failed_names.append(test_name)
+            else:
+                passed_names.append(test_name)
+
+        return all_passed, output, passed_names, failed_names
+    finally:
+        sys.stdout = old_stdout
